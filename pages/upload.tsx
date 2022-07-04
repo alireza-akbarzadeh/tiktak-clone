@@ -1,78 +1,24 @@
-// @React
-import React, { useState, useEffect } from "react";
-// @Next
-import { useRouter } from "next/router";
 // @Icons
 import { FaCloudUploadAlt } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
-// @axios
-import axios from "axios";
-// @Store
-import useAuthStore from "../store/authStore";
 // @utils
-import { client } from "../utils/client";
 import { topics } from "../utils/constants";
 // @sanity
 import { SanityAssetDocument } from "@sanity/client";
-
+// @ Hook
+import { useUploadVideos } from "../Hook/useUploadVideos";
 // @JSX
 const Upload = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [videoAsset, setVideoAsset] = useState<
-    SanityAssetDocument | undefined
-  >();
-  const [caption, setCaption] = useState<string>("");
-  const [category, setCategory] = useState(topics[0].name);
-  const [savingPost, setSavingPost] = useState<boolean>(false);
+  const {
+    isLoading,
+    wrongFileType,
+    setCaption,
+    setCategory,
+    uploadVideo,
+    handlePost,
+    videoAsset,
+    caption,
+  } = useUploadVideos();
 
-  const [wrongFileType, setWrongFileType] = useState<boolean>(false);
-
-  const { userProfile }: { userProfile: any } = useAuthStore();
-  const router = useRouter();
-  const uploadVideo = async (e: any) => {
-    const selectedFile = e.target.files[0];
-    const fileTypes = ["video/mp4", "video/webm", "video/ogg"];
-    if (fileTypes.includes(selectedFile.type)) {
-      setIsLoading(true);
-      client.assets
-        .upload("file", selectedFile, {
-          contentType: selectedFile.type,
-          filename: selectedFile.name,
-        })
-        .then((data) => {
-          setVideoAsset(data);
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-      setWrongFileType(true);
-    }
-  };
-
-  const handlePost = async () => {
-    if (caption && videoAsset?._id && category) {
-      setSavingPost(true);
-      const doc = {
-        _type: "post",
-        caption,
-        video: {
-          _type: "file",
-          asset: {
-            _type: "reference",
-            _ref: videoAsset?._id,
-          },
-        },
-        userId: userProfile?._id,
-        postedBy: {
-          _type: "postedBy",
-          _ref: userProfile?._id,
-        },
-        topic: category,
-      };
-      await axios.post("http://localhost:3000/api/post", doc);
-      router.push("/");
-    }
-  };
   return (
     <div className='flex   w-full h-full absolute left-0 top-[60px] mb-10 pt-10 lg:pt-20 bg-[#f8f8f8] justify-center'>
       <div className='bg-white rounded-lg  xl:h-[80vh]  w-[60%] flex gap-6 flex-wrap justify-between items-center p-14 pt-6'>
